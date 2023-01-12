@@ -1,3 +1,28 @@
+//NikanKhadka_2059784
+
+
+/*2. Password cracking using multithreading (15% - 100 marks)
+In this task, you will be asked to use the “crypt” library to decrypt a password using multithreading.
+You will be provided with two programs. The first program called “EncryptSHA512.c” allows you to
+encrypt a password. For this assessment, you will be required to decrypt a 4-character password
+consisting of 2 capital letters, and 2 numbers. The format of the password should be
+“LetterLetterNumberNumber.” For example, “HP93.” Once you have generated your password, this
+should then be entered into your program to decrypt the password. The method of input for the
+encrypted password is up to you. The second program is a skeleton code to crack the password on a
+single thread without any multithreading syntax. Your task is to use the pthread or omp library to
+split the workload over many threads and find the password. Once the password has been found,
+the program should finish meaning not all combinations of 2 letters and 2 numbers should be
+explored unless it’s ZZ99 AND the last thread happens to finish last.*/
+
+/******************************************************************************
+
+  Compile with: gcc CrackAZ99.c -lpthread -lcrypt -o CrackAZ99 
+
+  Execute with: ./CrackAZ99 <numberofthreads>
+                   where number_of_threads should be > 0
+*******************************************************************************/
+
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -16,21 +41,11 @@
     exit(EXIT_FAILURE);          \
   } while (0)
 
-/******************************************************************************
-  Demonstrates how to crack an encrypted password using a simple
-  "brute force" algorithm. Works on passwords that consist only of 2 uppercase
-  letters and a 2 digit integer.
 
-  Compile with:
-    gcc CrackAZ99.c -lpthread -lcrypt -o CrackAZ99 
-
-  Execute with:
-    ./CrackAZ99 <numberofthreads>
-    where number_of_threads should be > 0
-*******************************************************************************/
-
-int count = 0; // A counter used to track the number of combinations explored so far
+// Counter to track number of combination used to crack the password
+int count = 0; 
 int Num_of_Threads;
+
 // int loopCount = 67600;
 int loopCount = 26;
 bool isFound = false;
@@ -42,12 +57,12 @@ struct threadInfo
 };
 
 char startChar, endChar;
-
 char *salt_and_encrypted;
-
 sem_t sem;
 
-// Required by lack of standard function in C.
+
+
+// required due to lack of standard function in c
 void substr(char *dest, char *src, int start, int length)
 {
   memcpy(dest, src + start, length);
@@ -55,11 +70,10 @@ void substr(char *dest, char *src, int start, int length)
 }
 
 /**
- This function can crack the kind of password explained above. All combinations
- that are tried are displayed and when the password is found, #, is put at the 
- start of the line. Note that one of the most time consuming operations that 
- it performs is the output of intermediate results, so performance experiments 
- for this kind of program should not include this. i.e. comment out the printfs.
+ This function can break the type of password described above. 
+ All attempted combinations will be shown, and when the password is successfully found, 
+ a "#" symbol will be added to the beginning of the line. Keep in mind that displaying intermediate results is a resource-intensive task, 
+ so performance tests for this program should exclude this by commenting out the print statements
 */
 
 static void *crack(void *args)
@@ -72,12 +86,19 @@ static void *crack(void *args)
   if (s != 0)
     handle_error_en(s, "pthread_setcancelstate");
 
-  int x, y, z;   // Loop counters
-  char salt[7];  // String used in hashing the password. Need space for \0 // incase you have modified the salt value, then should modifiy the number accordingly
-  char plain[7]; // The combination of letters currently being checked // Please modifiy the number when you enlarge the encrypted password.
-  char *enc;     // Pointer to the encrypted password
+// standard loop counter variables
+  int x, y, z;   
 
-  char ascii_to_char; // to convert the ASCII int into ASCII char value
+ // The string utilized in encrypting the password must allow for the presence of a null terminator ("\0"). If the salt value has been altered, the number of characters allocated for this string should be adjusted accordingly
+  char salt[7];  
+  //The current arrangement of letters being evaluated. If the length of the encrypted password is increased, the number of characters allocated for this string should be modified accordingly.
+  char plain[7]; 
+
+  // pointer to store the encrypted passwords adress
+  char *enc;     
+
+ // convert the ASCII int into ASCII char value
+  char ascii_to_char;
 
   substr(salt, salt_and_encrypted, 0, 6);
 
@@ -114,12 +135,12 @@ static void *crack(void *args)
   }
   else
   {
-    // cancel all other threads when the required password has been found
+    // Cancel the thread execution when required password is found
     s = pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
     if (s != 0)
       handle_error_en(s, "pthread_setcancelstate");
 
-    // waiting for a second to let the thread cancel
+    // wait then cancel the remaining threads
     printf("\nWaiting for five seconds to let the remaining threads cancel...\n");
     sleep(5);
   }
@@ -127,7 +148,7 @@ static void *crack(void *args)
   sem_post(&sem);
 }
 
-// preparing the slicelist
+// prepare the sliced/divided number of records to be processed by each thread
 void prepareSliceList()
 {
   int sliceList[Num_of_Threads];
@@ -136,14 +157,14 @@ void prepareSliceList()
   void *res;
   int s;
 
-  // to store the sliced/divided number of records to be processed by each thread
+  //  store the sliced number of records to be processed by each thread
   for (int i = 0; i < Num_of_Threads; i++)
   {
     sliceList[i] = loopCount / Num_of_Threads;
   }
 
-  // to update the sliced/divided number of characters that each thread
-  // has to process without leaving any characters unprocessed/unchecked
+  // update the sliced number of characters that each thread represents and process without leaving any character unchecked
+
   for (int j = 0; j < remainder; j++)
   {
     sliceList[j] = sliceList[j] + 1;
@@ -167,12 +188,13 @@ void prepareSliceList()
     }
 
     endList[k] = startList[k] + sliceList[k] - 1;
-    //checking the work load of each thread
-    printf("\nstartList[%d] = %d `%c`\t\tendList[%d] = %d `%c`", k, startList[k], (char)startList[k], k, endList[k], (char)endList[k]);
+
+    //check the WorkLoad of each thread used
+    printf("\nStartList[%d] = %d `%c`\t\tEndList[%d] = %d `%c`", k, startList[k], (char)startList[k], k, endList[k], (char)endList[k]);
   }
 
   struct threadInfo threadDetails[Num_of_Threads];
-//greating thread data
+  //fetch the thread data
   for (int l = 0; l < Num_of_Threads; l++)
   {
     threadDetails[l].limit = startList[l];
@@ -183,7 +205,7 @@ void prepareSliceList()
 
   sem_init(&sem, 0, 1);
 
-  printf("\n\nCreating threads and checking for a matching hash...\n");
+  printf("\n\nCreating threads and process to check the matching hash...\n");
 
   // Copy and paste the ecrypted password here using EncryptShA512 program
   salt_and_encrypted = "$6$AS$a2lb05Cfr5T89rBnajIB0AXI79VSJfYrnEgB9l0iw0pz38j17/iPhXVPn029Pd8b32NzPD9TmeCl6ksksTNIi0";
@@ -201,7 +223,6 @@ void prepareSliceList()
   {
     if (isFound)
     {
-      // printf("\nThreadID: %d is canceling\n", n);
 
       s = pthread_cancel(thread_id[n]);
       if (s != 0)
@@ -219,7 +240,7 @@ void prepareSliceList()
       printf("\nThreadID: %d was not canceled...\n", n);
   }
 
-  printf("\nsemaphore destroyed...\n");
+  printf("\nSemaphore destroyed...\n");
 
   sem_destroy(&sem);
 }
@@ -230,6 +251,6 @@ int main(int argc, char *argv[])
 
   prepareSliceList();
 
-  printf("\n%d solutions explored\n", count);
+  printf("\n%d Solutions and possible combinations explored\n", count);
   return 0;
 }
