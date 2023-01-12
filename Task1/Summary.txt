@@ -1,0 +1,25 @@
+This code is a program that performs matrix multiplication using multiple threads.
+
+The first two lines include the standard input/output and standard library headers, and the pthread library header.
+
+The next section includes function prototypes for "find_number_of_rows_and_columns" and "multiply_matrices"
+
+"max_threads_allowed" is a variable that limits the number of input threads to the dimensions of the matrices
+
+"threadCount" is a variable that keeps track of the number of threads being used.
+
+"unit" is a struct that stores an individual matrix element, and "matrix" is a struct that stores the number of rows, columns, and a reference to the matrix elements.
+
+"matrix A, B, C, _C, target" are all variables of type matrix that are used throughout the program. "pthread_mutex_t mutex" is a variable used for thread synchronization.
+
+"thread_counter" is a variable that keeps track of the number of threads that have been created.
+
+"create_matrix" is a function that creates a matrix with a specified number of rows and columns, and initializes all elements to 0.
+
+"writeinFile" is a function that writes the result of the matrix multiplication to a file named "2059784_MatrixOutput.txt"
+
+"display_matrix" is a function that displays the matrix on the console.
+
+"calculate_one_matrix_unit" is a function that calculates the value of one element in the resulting matrix.
+
+"multiply_matrices" is a function that is executed by each thread and is responsible for performing the matrix multiplication. It uses a mutex to synchronize access to shared data and continues to execute until all elements of the resulting matrix have been calculated.
